@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <script src="/static/jquery3.2.1.js"></script>
+    <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <style>
+        .content {
+            overflow: hidden;
+            word-wrap: break-word;
+            width: 400px;
+            border-bottom: 1px #e3e3e3 solid;
+        }
+    </style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header ">
+            <span class="navbar-brand" style="margin-left: 50px">博客园</span>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav" style="margin-left: 100px">
+                <li class="active"><a href="/">主页</a></li>
+                <li><a href="#">随笔</a></li>
+                <li><a href="#">园子</a></li>
+                <li><a href="#">新闻</a></li>
+                <li><a href="#">博问</a></li>
+                <li><a href="#">小组</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if request.session.userinfo %}
+                <li><h4 style="color: white;margin-top: 15px;margin-right: 30px"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+                    <a style="color: white" href="/blog/{{ request.session.userinfo.name }}">{{ request.session.userinfo.name }}</a>
+                </h4></li>
+                <li style="margin-right: 100px"><a href="/logout/">注销</a></li>
+                    {% else %}
+                    <li style="margin-right: 30px"><a href="/login/">登陆</a></li>
+                    <li style="margin-right: 100px"><a href="/reg/">注册</a></li>
+                {% endif %}
+
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<div class="container">
+    <div class="row">
+        {#        网站分类#}
+        <div class="col-md-2" style="margin-left: 50px">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">网站分类</h3>
+                </div>
+                {% for web in web_obj %}
+                    <div class="panel panel-default server" style="margin-top: 20px">
+                        <div class="panel-heading">{{ web.name }}</div>
+                        {% for artile_cls in web.web_artile_cla_set.all %}
+                            <div class="panel-body hide">
+                                <a href="/cate/{{ artile_cls.name }}">{{ artile_cls.name }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+{#    文章区#}
+        <div class="col-md-7" style="margin-left: 50px">
+            {% for art in artile %}
+                <p><a href="">{{ art.title }}</a></p>
+                <div class="content">
+                <div class="col-md-2">
+                    <a href="/blog/{{ art.user.username }}">
+                    <img src="{{ art.user.info.avatar.url }}" width="60px" height="60px"></a></div>
+                 <div class="col-md-10">{{ art.summary }}</div>
+
+
+                    <p style="margin-top: 20px"><a href="/blog/{{ art.user.username }}">{{ art.user.username }}</a>
+                        发表于{{ art.create_time|date:"Y-m-d" }}
+                        <a style="margin-left: 15px" href=""><span class="glyphicon glyphicon-comment"
+                                                                   aria-hidden="true"></span>&nbsp;comment </a>
+                        <a style="margin-left: 15px" href=""><span class="glyphicon glyphicon-thumbs-up"
+                                                                   aria-hidden="true"></span>&nbsp;up </a>
+                    </p>
+                </div>
+            {% endfor %}
+
+{#            分页#}
+            <nav aria-label="Page navigation" style="margin-left: 60px">
+                <ul class="pagination">
+                    <li>
+                        <a href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li><a href="#">1</a></li>
+                    <li><a href="#">2</a></li>
+                    <li><a href="#">3</a></li>
+                    <li><a href="#">4</a></li>
+                    <li><a href="#">5</a></li>
+                    <li>
+                        <a href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+
+
+        <div class="col-md-3"></div>
+    </div>
+</div>
+
+
+<script>
+    $(function () {
+        $(".server").mouseenter(function () {
+            $(this).children().first().siblings().removeClass("hide")
+        })
+    });
+    $(function () {
+        $(".server").mouseleave(function () {
+            $(this).children().first().siblings().addClass("hide")
+        })
+    })
+</script>
+</body>
+</html>

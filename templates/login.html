@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <style>
+        .reg{
+            margin-left: 100px;
+        }
+
+    </style>
+</head>
+<body>
+{% csrf_token %}
+<p>账号：<input class="c1" type="text" placeholder="账号"><span></span></p>
+<p>密码：<input class="c1" type="password" placeholder="密码"></p>
+
+<p>验证码:<input type="text" placeholder="验证码" id="valid"><span class="c2"></span></p>
+<p><img class="c9" src="/img/"></p>
+
+<span><button class="login">登陆</button></span>
+<span><a href="/reg/"><button class="reg">注册</button></a></span>
+
+<script src="/static/jquery3.2.1.js"></script>
+<script src="/static/jquery.cookie.js"></script>
+<script>
+    $(function () {
+        function foo() {
+             $(".c2").html("");
+        }
+        $(".login").click(function () {
+            $(".c1").each(function (i,v) {
+                if (!$(v).val()){
+                    $(v).next().html("内容不能为空！！");
+                    return false
+                }else{
+                    $(v).next().html("");
+                }
+                 $.ajax({
+                        url:"/login/",
+                        type:"POST",
+{#                        headers:{"X-CSRFToken":$.cookie('csrftoken')},#}
+                        data:{
+                            csrfmiddlewaretoken:$("[name='csrfmiddlewaretoken']").val(),
+                            name:$(":text").val(),
+                            password:$(":password").val(),
+                            valid:$("#valid").val()
+                        },
+                        success:function (data) {
+                            data=JSON.parse(data);
+                            if (data["error"]){
+                                $(".c2").html(data["error"])
+                            }else if (data["is_login"]){
+                                location.href=document.referrer.substr(21)
+                            }
+                        }
+                    })
+            })
+        })
+    });
+    $(function () {
+        $(".c9").click(function () {
+            var path = $(this).attr("src");
+            $(this).attr("src",path+"?")
+        })
+    })
+
+</script>
+</body>
+
+</html>

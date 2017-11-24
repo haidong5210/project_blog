@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <script src="/static/jquery3.2.1.js"></script>
+    <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    {% block style %}
+
+    {% endblock %}
+</head>
+<body>
+{#导航条#}
+<nav class="navbar" style="background-color: aqua">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <a style="color:white" class="navbar-brand" href="/blog/{{ username }}">Hello&nbsp;{{ username }}</a>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/">博客园</a></li>
+        <li><a href="/">首页</a></li>
+        <li><a href="#">新随笔</a></li>
+        <li><a href="#">联系</a></li>
+        <li><a href="#">订阅</a></li>
+        <li><a href="#">管理</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3" style="background-color: whitesmoke">
+            <div class="panel panel-info" style="margin-top: 20px">
+                <div class="panel-heading">
+                    <h3 class="panel-title">公告</h3>
+                </div>
+                <div class="panel-body">
+                    <img src="{{ userobj.info.avatar.url }}" width="80" height="80" style="margin-left: 20px">
+                <h4>昵称：{{ userobj.info.nickname }}</h4>
+                <h4>园龄：{{ userobj.create_time|timesince }}</h4>
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">我的标签</h3>
+                </div>
+                {% for tag in tag_list %}
+                <div class="panel-body">
+                    <a href="/blog/{{ username }}/tag/{{ tag.2 }}">{{ tag.0 }}({{ tag.1 }})</a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">随笔分类</h3>
+                </div>
+                    {% for classify in classify_list %}
+                        <div class="panel-body">
+                            <a href="/blog/{{ username }}/category/{{ classify.2 }}">{{ classify.0 }}({{ classify.1 }})</a>
+                        </div>
+                    {% endfor %}
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">随笔档案</h3>
+                </div>
+                {% for time in dates %}
+                     <div class="panel-body">
+                         <a href="/blog/{{ username }}/archive/{{ time.0 }}">{{ time.0 }}({{ time.1 }})</a>
+                    </div>
+                {% endfor %}
+
+
+            </div>
+
+        </div>
+
+        {#文章区#}
+    {% block article %}
+            <div class="col-md-8" style="background-color: whitesmoke">
+            {% for article in articlelist %}
+                    <div style="margin-top: 25px"><h4><a href="/blog/{{ username }}/p/{{ article.id }}">{{ article.title }}</a></h4></div>
+                    <hr>
+                    <div>{{ article.summary }}......<a href="/blog/{{ username }}/p/{{ article.id }}">阅读全文</a></div>
+                <p></p>
+                <span style="margin-left: 550px;color: #999">
+                    posted &nbsp;@ &nbsp;{{ article.create_time|date:"Y-m-d" }}&nbsp;{{ username }}&nbsp;评论({{ article.comment_count }})
+                    &nbsp;<a style="color: #999" href="/login/">编辑</a></span>
+            {% endfor %}
+        </div>
+    {% endblock %}
+
+    </div>
+</div>
+{% block ajax %}
+
+{% endblock %}
+
+
+</body>
+</html>

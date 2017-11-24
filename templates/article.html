@@ -1,0 +1,171 @@
+{% extends "home.html" %}
+
+{% block style %}
+    <style>
+        .feedbackItem {
+            padding: 8px;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .comment_vote {
+            text-align: right;
+        }
+    .login_tips {
+        background-image: url("/static/icon_addcomment.gif");
+        background-repeat: no-repeat;
+        margin-top: 10px;
+        padding: 0 0 10px 25px;
+        font-weight: bold;
+    }
+    .bq_post_comment {
+        color: red;
+    margin: 0 0 5px 0;
+    font-style: normal;
+    line-height: 180%;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+    </style>
+{% endblock %}
+
+
+{% block article %}
+    <div class="col-md-8" style="background-color: whitesmoke">
+
+        <div style="margin-top: 25px"><h4><a href="">{{ article_detail.article.title }}</a></h4></div>
+
+        <br>
+
+        {{ article_detail.content }}
+
+        <p></p>
+        <p></p>
+
+        {#点赞#}
+        <button id="btn" style="width: 20px;height: 40px;margin-left: 750px">
+            <div style="width: 20px;height: 20px;background-color: #f0ad4e;margin-left: -8px;margin-top:-3px ">
+                <span id="poll" style="margin-left: 3px">{{ article_detail.article.poll_count }}</span>
+            </div>
+            <div style="width: 20px;height: 20px;background-color: turquoise;margin-left: -8px;">
+                <span style="margin-left: 1px" class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+            </div>
+            <div id="error" style="width: 100px;height: 30px;color: red"> </div>
+            <div id="user"></div>
+        </button>
+
+    <p></p>
+    <p></p>
+        {#评论#}
+
+        {% for c in comment %}
+            <div class="feedbackItem">
+                <div class="feedbackListSubtitle">
+                    <div class="feedbackManage">
+                        &nbsp;&nbsp;<span class="comment_actions"></span>
+                    </div>
+                    <a href="#3783967" class="layer">{{ forloop.counter }}楼</a>
+                    <span class="comment_date">{{ c.time|date:"Y-m-d G:i" }}</span>
+                    <a id="a_comment_author_3783967" href="/blog/{{ c.user.username }}">{{ c.user.info.nickname }}</a>
+                    {% if request.session.userinfo.name %}
+                        {% if request.session.userinfo.name == c.user.username %}
+                            <a class="pull-right" href="" style="margin-left: 20px">删除</a>
+                            <a class="pull-right" style="margin-left: 30px" href="">修改</a>
+                            {% else %}
+                            <a class="pull-right" href="">回复</a>
+                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+                <div class="feedbackCon">
+                    <div id="comment_body_3783967" class="blog_comment_body">
+                        <br>{{ c.content }}</div>
+                    <div class="comment_vote"><a style="color: darkgray" class="comment_digg">支持(23)</a>
+                        <a style="color: darkgray" class="comment_bury">反对(41)</a></div>
+                </div>
+            </div>
+        {% endfor %}
+
+
+    {% if request.session.userinfo.name %}
+        <div id="haidong"></div>
+        <div class="commentbox_main">
+                <div class="commentbox_title">
+                    <div class="commentbox_title_left">评论内容：</div>
+                </div>
+                <textarea id="tbCommentBody" class="comment_textarea" style="width: 432px;height: 120px; "></textarea>
+            </div>
+            <p id="commentbox_opt">
+                <input id="btn_comment_submit" type="button" class="comment_btn" value="提交评论">
+            <span id="bingo" style="color: red"></span>
+            </p>
+    {% else %}
+        <div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="/login/" class="underline" >登录</a> 或 <a rel="nofollow" href="/reg/" >注册</a>，<a href="/">访问</a>网站首页。</div>
+    {% endif %}
+
+    </div>
+{% endblock %}
+
+{% block ajax %}
+    <script>
+        //点赞
+        $(function () {
+            $("#btn").click(function () {
+                $.ajax({
+                    url: "/poll/",
+                    type: "GET",
+                    data: {
+                        bool: 1,
+                        user: "{{ request.session.userinfo.name }}",
+                        article_id: "{{ article_detail.article.id }}"
+
+                    },
+                    success: function (data) {
+                        var data = JSON.parse(data);
+                        if (data.error) {
+                            $("#error").html("你已经点过赞了")
+                        }if(!data.error){
+                            $("#poll").html(data.is_poll)
+                        }if(!data.user){
+                             $("#error").html("请登录！")
+                        }
+                    }
+
+                })
+            })
+        });
+        //评论
+        $(function () {
+            $("#btn_comment_submit").click(function () {
+                $.ajax({
+                    url: "/comment/",
+                    type: "GET",
+                    data: {
+                        comment: $("textarea").val(),
+                        user: "{{ request.session.userinfo.name }}",
+                        article_id: "{{ article_detail.article.id }}"
+                    },
+                    success: function (data) {
+                        var bool = JSON.parse(data);
+                        $blockquote = $("<blockquote>");
+                        $blockquote.addClass("bq_post_comment");
+                        $blockquote.html($("textarea").val());
+                         $a=$("<a>");
+                         $a.attr("href","/blog/{{ request.session.userinfo.name }}");
+                         $a.html("用户：{{  request.session.userinfo.name }}");
+                        if (bool.bingo) {
+                            $(".commentbox_main").before( $blockquote);
+                            $("#haidong").before($a);
+                            $("textarea").val("")
+                        }else{
+                            $("#bingo").html("内容不能为空！！")
+                        }
+                    }
+                })
+
+            })
+        });
+
+    </script>
+{% endblock %}

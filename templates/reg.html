@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <style>
+         .file,.avatar{
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            left: 80px;
+            bottom: -10px;
+        }
+        .ava{
+            position: relative;
+        }
+        .file{
+        opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<form>
+    {% csrf_token %}
+<p>{{ form.email.label }}{{ form.label_suffix }}{{ form.email }} <span></span></p>
+<p>{{ form.tel.label }}{{ form.label_suffix }}{{ form.tel }}<span></span></p>
+<p>{{ form.username.label }}{{ form.label_suffix }}{{ form.username }}<span></span></p>
+<p>{{ form.nickname.label }}{{ form.label_suffix }}{{ form.nickname }}<span></span></p>
+<p>{{ form.password.label }}{{ form.label_suffix }}{{ form.password }}<span></span></p>
+<p>{{ form.confirmPassword.label }}{{ form.label_suffix }}{{ form.confirmPassword }}<span></span></p>
+    <p class="ava">头像：<img class="avatar" src="/static/default.png"><input class="file" type="file" name="avatar"></p>
+    </form>
+<p><button>注册</button></p>
+<script src="/static/jquery3.2.1.js"></script>
+<script src="/static/jquery.cookie.js"></script>
+<script>
+    $(".file").change(function () {
+        var file=$(this)[0].files[0]; //获取改变之后的文件
+        var reader=new FileReader();  //实例化一个文件读取者
+        reader.readAsDataURL(file);    //读取文件的过程，获得路径
+        reader.onload=function () {   // 文件路径加载完之后的操作 the result就是文件的路径
+            $(".avatar")[0].src=this.result
+        }
+    });
+
+    $(function () {
+        $("button").click(function () {
+           var formdata = new FormData();
+           formdata.append("username",$("#id_username").val());
+           formdata.append("password",$("#id_password").val());
+           formdata.append("confirmPassword",$("#id_confirmPassword").val());
+           formdata.append("email",$("#id_email").val());
+           formdata.append("tel",$("#id_tel").val());
+           formdata.append("nickname",$("#id_nickname").val());
+           formdata.append("avatar",$(".file")[0].files[0]);
+           formdata.append("csrfmiddlewaretoken",$("[name='csrfmiddlewaretoken']").val());
+            $.ajax({
+                url:"/reg/",
+                type:"POST",
+{#                headers:{"X-CSRFToken":$.cookie('csrftoken')},#}
+                data:formdata,
+                contentType:false,
+                processData:false,
+                success:function (data) {
+
+                    if (!JSON.parse(data)){
+                        window.location.href="/login/"
+                    }
+                    for (var i in JSON.parse(data)){
+                       $("#id_"+i).next().html(JSON.parse(data)[i][0]);
+{#                       $('[name='+i+']').next().html(JSON.parse(data)[i][0]);#}
+                    }
+                    if (!("email" in JSON.parse(data))){
+                        $("[name='email']").next().html("")
+                    }if (!("tel" in JSON.parse(data))){
+                        $("[name='tel']").next().html("")
+                    }if (!("username" in JSON.parse(data))){
+                        $("[name='username']").next().html("")
+                    }if (!("nickname" in JSON.parse(data))){
+                        $("[name='nickname']").next().html("")
+                    }if (!("password" in JSON.parse(data))){
+                        $("[name='password']").next().html("")
+                    }if (!("confirmPassword" in JSON.parse(data))){
+                        $("[name='confirmPassword']").next().html("")
+                    }
+                }
+            })
+        })
+    })
+</script>
+</body>
+</html>
