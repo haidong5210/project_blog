@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <script src="/static/jquery3.2.1.js"></script>
+    <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script src="/static/kindeditor/kindeditor-all-min.js"></script>
+
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header" style="height: 80px">
+            <a class="navbar-brand" href="#"><img src="/static/adminlogo.gif" alt=""></a>
+        </div>
+        <div style="margin-top: 5px" class="pull-right"><a href="/blog/{{  request.session.userinfo.name }}/"><h2>{{ request.session.userinfo.name }}</h2></a></div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">操作</div>
+                <div class="panel-body">
+                    <p><a href="/blog/addArticle/">添加新文章</a></p>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">分类</div>
+                <div class="panel-body">
+                    <a href="">[编辑分类]</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+        {% block content %}
+            <div class="panel panel-default">
+                <div class="panel-heading"></div>
+                <div class="panel-body">
+                    <div class="bs-example" data-example-id="simple-table">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th class="col-md-8"><a href="">标题</a></th>
+                                <th class="col-md-1">评论数</th>
+                                <th class="col-md-1">阅读数</th>
+                                <th class="col-md-1">操作</th>
+                                <th class="col-md-1">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for article in article_set %}
+                                <tr>
+                                    <th scope="row"><a href="/blog/{{ request.session.userinfo.name }}/p/{{ article.id }}">{{ article.title }}({{ article.create_time|date:'Y-m-d h:i' }})</a></th>
+                                    <td>{{ article.comment_count }}</td>
+                                    <td>{{ article.read_count }}</td>
+                                    <td><a href="/blog/cnblogs/{{ article.id }}/">编辑</a></td>
+                                    <td><a article_id="{{ article.id }}" class="del">删除</a></td>
+                                </tr>
+                            {% endfor %}
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+         {% endblock %}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.del').click(function () {
+            $(this).addClass("is_me");
+           $.ajax({
+               url:'/blog/del_article/',
+               type:"GET",
+               dataType:"json",
+               data:{
+                   article_id:$(this).attr("article_id")
+               },
+               success:function (data) {
+                    if (data){
+                       $(".is_me").parent().parent().html("<td style='color:red'>删除成功</td>")
+                    }
+               }
+           })
+        })
+    })
+</script>
+</body>
+</html>

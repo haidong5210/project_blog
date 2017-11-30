@@ -1,0 +1,32 @@
+{% extends 'cnblog.html' %}
+
+{% block content %}
+
+    <div class="panel panel-default">
+        <div class="panel-heading">添加新文章</div>
+        <div class="panel-body">
+            <form action="/blog/cnblogs/{{ nid }}/" method="post" novalidate>
+                {% csrf_token %}
+                <p>标题:{{ form.title }}{{ form.errors.title.0 }}</p>
+                <p>内容:{{ form.content }}</p>
+                <p><input type="submit" style="background-color: #2aabd2;margin-top: 20px">{{ form.errors.content.0 }}</p>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        KindEditor.ready(function (K) {
+            window.editor = K.create('#id_content',{
+                width:"100%",
+                height:300,
+                resizeType:0,
+                uploadJson:"/article_img/",
+                extraFileUploadParams:{
+                    csrfmiddlewaretoken:$("[name='csrfmiddlewaretoken']").val()
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from bs4 import BeautifulSoup
 # Create your models here.
 
 
@@ -13,6 +13,7 @@ class Info(models.Model):
 
     def __str__(self):
         return self.nickname
+
 
 class User(models.Model):   #settings  ：AUTH_USER_MODEL ="项目名称.UserInfo"
     '''用户信息表'''
@@ -43,7 +44,7 @@ class Article(models.Model):
     user = models.ForeignKey(to="User",verbose_name="所属作者",null=True,blank=True)
     classify = models.ForeignKey(to="Classfication",verbose_name="所属类别",null=True,blank=True)
     tags = models.ManyToManyField(to="Tag",through="Article2tag",through_fields=('article', 'tag'),verbose_name="所属标签")
-    webartilecla = models.ForeignKey(verbose_name="文章所述主页文章类",to="Web_artile_cla")
+    webartilecla = models.ForeignKey(verbose_name="文章所述主页文章类",to="Web_artile_cla",null=True)
 
     class Meta:
         verbose_name_plural = "文章表"
@@ -104,7 +105,6 @@ class Article2tag(models.Model):
         unique_together = [
             ("article","tag")
         ]
-
 
 
 class Comment(models.Model):

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import datetime
 from django.shortcuts import render,HttpResponse,redirect
 from django.forms import Form,fields,widgets
 from app01 import models
@@ -118,19 +119,19 @@ def reg(request):
 def login(request):
     if request.method == "GET":
         return render(request,"login.html")
-    user = request.POST.get("name")
-    pwd = request.POST.get("password")
-    valid = request.POST.get("valid")
-    dict = {"is_login":False,"error":None}
-    is_exit = models.User.objects.filter(password=pwd,username=user).first()
-    if not valid.upper() == request.session.get(settings.VALID).upper():
-        dict["error"] = "验证码错误！"
-    elif is_exit:
-        request.session[settings.USER] = {"name":user,"password":pwd}
-        dict["is_login"]=True
-    elif not is_exit:
-        dict["error"] = "用户名密码不匹配！"
-    return HttpResponse(json.dumps(dict))
+    # user = request.POST.get("name")
+    # pwd = request.POST.get("password")
+    # valid = request.POST.get("valid")
+    # dict = {"is_login":False,"error":None}
+    # is_exit = models.User.objects.filter(password=pwd,username=user).first()
+    # if not valid.upper() == request.session.get(settings.VALID).upper():
+    #     dict["error"] = "验证码错误！"
+    # elif is_exit:
+    #     request.session[settings.USER] = {"name":user,"password":pwd}
+    #     dict["is_login"]=True
+    # elif not is_exit:
+    #     dict["error"] = "用户名密码不匹配！"
+    # return HttpResponse(json.dumps(dict))
 
 
 def index(request,*args,**kwargs):
@@ -248,10 +249,12 @@ def poll(request):
     dict={"is_poll":poll_num,"error":False,"user":True}
     if user_name:
         if bool and not is_exit:
-            models.Article_poll.objects.create(article_id=article_id,user=poll_user_obj)
-            models.Article.objects.filter(user=article_user, id=article_id).update(poll_count=F("poll_count")+1)
-            poll_new_num = models.Article.objects.filter(user=article_user, id=article_id).values_list("poll_count")[0][0]
-            dict["is_poll"]=poll_new_num
+            from django.db import transaction
+            with transaction.atomic():   #事务
+                models.Article_poll.objects.create(article_id=article_id,user=poll_user_obj)
+                models.Article.objects.filter(user=article_user, id=article_id).update(poll_count=F("poll_count")+1)
+                poll_new_num = models.Article.objects.filter(user=article_user, id=article_id).values_list("poll_count")[0][0]
+                dict["is_poll"] = poll_new_num
         else:
             dict["error"]=True
     else:
@@ -260,15 +263,151 @@ def poll(request):
 
 
 def comment(request):
-    user_name = request.GET.get("user")
-    article_id = request.GET.get("article_id")
-    content=request.GET.get("comment")
-    article_user = models.User.objects.filter(article__id=article_id).first()   #作者
-    user_obj = models.User.objects.filter(username=user_name).first()     #当前登陆者
     dict = {"bingo":True}
-    if content:
-        models.Comment.objects.create(content=content,user=user_obj,article_id=article_id)
-        models.Article.objects.filter(user=article_user, id=article_id).update(comment_count = F("comment_count")+1)
+    user_name = request.POST.get("user")
+    article_id = request.POST.get("article_id")
+    content = request.POST.get("comment")
+    comment_id = request.POST.get("comment_id")
+    article_user = models.User.objects.filter(article__id=article_id).first()  # 作者
+    user_obj = models.User.objects.filter(username=user_name).first()  # 当前登陆者
+    if comment_id and content:
+        comment=models.Comment.objects.create(content=content, user=user_obj,article_id=article_id,farther_comment_id=comment_id)
     else:
-        dict["bingo"] = False
+        if content:
+            models.Comment.objects.create(content=content,user=user_obj,article_id=article_id)
+            models.Article.objects.filter(user=article_user, id=article_id).update(comment_count = F("comment_count")+1)
+        else:
+            dict["bingo"] = False
     return HttpResponse(json.dumps(dict))
+
+
+def dell(request):
+    comment_id = request.GET.get('comment_id')
+    models.Comment.objects.filter(id=comment_id).delete()
+    return HttpResponse(comment_id)
+
+
+def test(request,article_id):
+    comment_dict = models.Comment.objects.filter(article_id=article_id).values("content","user__info__nickname","user__username","farther_comment","id","time")
+    l = []
+    dict = {}
+    for comment in comment_dict:
+        comment['children']=[]
+        comment["time"]=str(comment["time"])
+        dict[comment['id']]=comment
+        if comment['farther_comment'] in dict:
+            dict[comment['farther_comment']]['children'].append(comment)
+        if not comment['farther_comment']:
+            l.append(comment)
+    return HttpResponse(json.dumps(l))
+
+
+from static.forms import Addarticle
+
+
+def addArticle(request):
+    if request.method=='POST':
+        form=Addarticle(request.POST)
+        summary = request.POST.get("summary")[0:20]
+        if not form.is_valid():
+            return render(request, 'addArticle.html', {"form": form})
+        else:
+            title = request.POST.get('title')
+            content = request.POST.get('content')
+            username= request.session[settings.USER]['name']
+            user_obj=models.User.objects.filter(username=username).first()
+            article_obj=models.Article.objects.create(title=title,summary=summary,user=user_obj)
+            models.Article_detail.objects.create(article=article_obj,content=content)
+            return render(request,'ok.html')
+    form= Addarticle()
+    return render(request,'addArticle.html',{"form":form})
+
+
+def cnblog(request):
+    username = request.session.get(settings.USER)
+    if not username:
+        return redirect('/login/')
+    else:
+        username = username['name']
+        article_set = models.Article.objects.filter(user__username=username)
+    return render(request,'cnblog.html',{'article_set':article_set})
+
+
+def article_img(request):
+    file = request.FILES.get('imgFile')
+    file_name = file.name
+    path = os.path.join(settings.MEDIA_ROOT,'article',file_name)
+    with open(path,'wb') as f:
+        for i in file:
+            f.write(i)
+    response = {
+        "error": 0,
+        "url": '/media/article/'+file_name+'/'
+    }
+    return HttpResponse(json.dumps(response))
+
+
+from app01.geetest import GeetestLib
+pc_geetest_id = "b46d1900d0a894591916ea94ea91bd2c"
+pc_geetest_key = "36fc3fe98530eea08dfc6ce76e3d24c4"
+mobile_geetest_id = "7c25da6fe21944cfe507d2f9876775a9"
+mobile_geetest_key = "f5883f4ee3bd4fa8caec67941de1b903"
+def pcgetcaptcha(request):
+    user_id = 'test'
+    gt = GeetestLib(pc_geetest_id, pc_geetest_key)
+    status = gt.pre_process(user_id)
+    request.session[gt.GT_STATUS_SESSION_KEY] = status
+    request.session["user_id"] = user_id
+    response_str = gt.get_response_str()
+    return HttpResponse(response_str)
+
+def pcajax_validate(request):
+    if request.method == "POST":
+        gt = GeetestLib(pc_geetest_id, pc_geetest_key)
+        challenge = request.POST.get(gt.FN_CHALLENGE, '')
+        validate = request.POST.get(gt.FN_VALIDATE, '')
+        seccode = request.POST.get(gt.FN_SECCODE, '')
+        status = request.session[gt.GT_STATUS_SESSION_KEY]
+        user_id = request.session["user_id"]
+        dict = {"is_login": False, "error": None}
+        if status:
+            result = gt.success_validate(challenge, validate, seccode, user_id)
+        else:
+            result = gt.failback_validate(challenge, validate, seccode)
+        if result:  #登陆成功的
+            user = request.POST.get("username")
+            pwd = request.POST.get("password")
+            is_exit = models.User.objects.filter(password=pwd, username=user).first()
+            if is_exit:
+                request.session[settings.USER] = {"name": user, "password": pwd}
+                dict["is_login"] = True
+            else:
+                dict["error"] = "用户名密码不匹配！"
+        return HttpResponse(json.dumps(dict))
+
+
+def del_article(request):
+    if request.is_ajax():
+        article_id = request.GET.get("article_id")
+        models.Article.objects.filter(id=article_id).delete()
+        return HttpResponse(json.dumps(True))
+
+
+def edit_article(request,nid):
+    print(22222222222222)
+    if request.method=="GET":
+        article_obj = models.Article.objects.filter(id=nid).first()
+        article_detailobj = models.Article_detail.objects.filter(article_id=nid).first()
+        form = Addarticle(initial={"title":article_obj.title,"content":article_detailobj.content})
+        return render(request,"editArticle.html",{"form":form,"nid":nid})
+    else:
+        form = Addarticle(request.POST)
+        print(11111111111111)
+        if not form.is_valid():
+            return render(request, "editArticle.html", {"form": form, "nid": nid})
+        else:
+            title = form.cleaned_data.get("title")
+            content = request.POST.get('content')
+            models.Article.objects.filter(id=nid).update(title=title,summary=content[0:20],update_time=datetime.datetime.now())
+            models.Article_detail.objects.filter(article_id=nid).update(content=content)
+            return render(request,"editok.html")
