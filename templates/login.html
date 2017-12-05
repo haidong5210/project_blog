@@ -9,6 +9,13 @@
         .reg {
             margin-left: 100px;
         }
+        .cccccc{
+            margin-top: 200px;
+            margin-left: 500px;
+        }
+        body{
+            background-image: url("/static/homescreen.jpeg");
+        }
 
     </style>
 </head>
@@ -17,16 +24,18 @@
 <script src="http://code.jquery.com/jquery-1.12.3.min.js"></script>
 <!-- 引入封装了failback的接口--initGeetest -->
 <script src="http://static.geetest.com/static/tools/gt.js"></script>
-
+<div class="cccccc">
 {% csrf_token %}
 <p>账号：<input class="c1" type="text" placeholder="账号"><span></span></p>
 <p>密码：<input class="c1" type="password" placeholder="密码"><span class="c2"></span></p>
+
 
 {#<p>验证码:<input type="text" placeholder="验证码" id="valid"><span class="c2"></span></p>#}
 {#<p><img class="c9" src="/img/"></p>#}
 
 <span><button class="login" id="popup-submit">登陆</button></span>
 <span><a href="/reg/"><button class="reg">注册</button></a></span>
+    </div>
 <div id="popup-captcha"></div>
 <script src="/static/jquery3.2.1.js"></script>
 <script src="/static/jquery.cookie.js"></script>

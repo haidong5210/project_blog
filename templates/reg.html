@@ -19,12 +19,20 @@
         .file{
         opacity: 0;
         }
+        body{
+            background-image: url("/static/homescreen.jpeg");
+        }
+        .sty{
+            margin-top: 100px;
+            margin-left: 500px;
+        }
     </style>
 </head>
 <body>
-
+<div class="sty">
 <form>
     {% csrf_token %}
+
 <p>{{ form.email.label }}{{ form.label_suffix }}{{ form.email }} <span></span></p>
 <p>{{ form.tel.label }}{{ form.label_suffix }}{{ form.tel }}<span></span></p>
 <p>{{ form.username.label }}{{ form.label_suffix }}{{ form.username }}<span></span></p>
@@ -34,6 +42,7 @@
     <p class="ava">头像：<img class="avatar" src="/static/default.png"><input class="file" type="file" name="avatar"></p>
     </form>
 <p><button>注册</button></p>
+</div>
 <script src="/static/jquery3.2.1.js"></script>
 <script src="/static/jquery.cookie.js"></script>
 <script>

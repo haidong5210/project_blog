@@ -9,7 +9,8 @@
                 {% csrf_token %}
                 <p>标题:{{ form.title }}{{ form.errors.title.0 }}</p>
                 <p>内容:{{ form.content }}</p>
-                <p><input type="submit" style="background-color: #2aabd2;margin-top: 20px">{{ form.errors.content.0 }}</p>
+                <p><input id="summary" type="text" style="display: none" name="summary" value=""></p>
+                <p><input id="sub" type="submit" style="background-color: #2aabd2;margin-top: 20px">{{ form.errors.content.0 }}</p>
             </form>
         </div>
     </div>
@@ -27,6 +28,9 @@
                 }
             });
         });
+         $("#sub").click(function () {
+           $("#summary").val(editor.text())
+        })
     </script>
 
 {% endblock %}

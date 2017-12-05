@@ -113,6 +113,7 @@ def reg(request):
     avatar = request.FILES.get("avatar")
     userobj = models.User.objects.create(username=username,password=password)
     models.Info.objects.create(email=email,nickname=nickname,tel=tel,user=userobj,avatar=avatar)
+    models.Blog.objects.create(url="/blog/%s/"%username,title="默认",theme="默认",user=userobj)
     return HttpResponse(json.dumps(False))
 
 
@@ -315,12 +316,19 @@ def addArticle(request):
             title = request.POST.get('title')
             content = request.POST.get('content')
             username= request.session[settings.USER]['name']
+            tagid_list = request.POST.getlist("tag")
+            cla_id = request.POST.get("cla")
             user_obj=models.User.objects.filter(username=username).first()
-            article_obj=models.Article.objects.create(title=title,summary=summary,user=user_obj)
+            article_obj=models.Article.objects.create(title=title,summary=summary,user=user_obj,classify_id=cla_id)
+            if tagid_list:
+                for tag_id in tagid_list:
+                    models.Article2tag.objects.create(article=article_obj,tag_id=tag_id)
             models.Article_detail.objects.create(article=article_obj,content=content)
             return render(request,'ok.html')
     form= Addarticle()
-    return render(request,'addArticle.html',{"form":form})
+    tag_list = models.Tag.objects.filter(blog__user__username=request.session.get(settings.USER)["name"])
+    class_list = models.Classfication.objects.filter(blog__user__username=request.session.get(settings.USER)["name"])
+    return render(request,'addArticle.html',{"form":form,"tag_list":tag_list,"class_list":class_list})
 
 
 def cnblog(request):
@@ -394,7 +402,6 @@ def del_article(request):
 
 
 def edit_article(request,nid):
-    print(22222222222222)
     if request.method=="GET":
         article_obj = models.Article.objects.filter(id=nid).first()
         article_detailobj = models.Article_detail.objects.filter(article_id=nid).first()
@@ -402,12 +409,12 @@ def edit_article(request,nid):
         return render(request,"editArticle.html",{"form":form,"nid":nid})
     else:
         form = Addarticle(request.POST)
-        print(11111111111111)
         if not form.is_valid():
             return render(request, "editArticle.html", {"form": form, "nid": nid})
         else:
             title = form.cleaned_data.get("title")
             content = request.POST.get('content')
-            models.Article.objects.filter(id=nid).update(title=title,summary=content[0:20],update_time=datetime.datetime.now())
+            summary = request.POST.get("summary")[0:80]
+            models.Article.objects.filter(id=nid).update(title=title,summary=summary,update_time=datetime.datetime.now())
             models.Article_detail.objects.filter(article_id=nid).update(content=content)
             return render(request,"editok.html")

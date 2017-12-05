@@ -2,6 +2,7 @@
 
 {% block style %}
     <style>
+
         .feedbackItem {
             margin-left: 30px;
             padding: 8px;
@@ -26,6 +27,7 @@
     border: 1px solid #ddd;
     padding: 10px;
 }
+
 
     </style>
 {% endblock %}
@@ -87,7 +89,7 @@
                     <div id="comment_body_3783967" class="blog_comment_body">
                         <br>
                         {% if c.farther_comment_id %}
-                         <div style="color: silver">{{ c.user }}对{{ c.farther_comment.user }}评论：{{ c.farther_comment.content }}</div>
+                         <div style="color: silver">{{ c.user }}对{{ c.farther_comment.user }}评论：{{ c.farther_comment.content|safe }}</div>
                         {% endif %}
                         {{ c.content|safe }}</div>
                     <div class="comment_vote"><a style="color: darkgray" class="comment_digg">支持(23)</a>
@@ -216,6 +218,7 @@
                 })
             })
         });
+
 //编辑器
 KindEditor.ready(function(K) {
         window.editor = K.create('#tbCommentBody',{

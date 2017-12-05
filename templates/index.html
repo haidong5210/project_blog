@@ -92,9 +92,9 @@
                             <p style="margin-top: 20px"><a href="/blog/{{ art.user.username }}">{{ art.user.username }}</a>
                                 发表于{{ art.create_time|date:"Y-m-d" }}
                             <a style="margin-left: 15px" href=""><span class="glyphicon glyphicon-comment"
-                                                                   aria-hidden="true"></span>&nbsp;comment </a>
+                                                                   aria-hidden="true"></span>&nbsp;comment({{ art.comment_count }}) </a>
                             <a style="margin-left: 15px" href=""><span class="glyphicon glyphicon-thumbs-up"
-                                                                   aria-hidden="true"></span>&nbsp;up </a>
+                                                                   aria-hidden="true"></span>&nbsp;up({{ art.poll_count }})</a>
                             </p>
                         </div>
                     </div>

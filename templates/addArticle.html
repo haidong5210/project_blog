@@ -10,6 +10,21 @@
                 <p>标题:{{ form.title }}{{ form.errors.title.0 }}</p>
                 <p>内容:{{ form.content }}</p>
                 <p><input id="summary" type="text" style="display: none" name="summary" value=""></p>
+                <p style="color: blue">标签：</p>
+                <div style="width: 100%;height: 30px;background-color: #2aabd2">
+                {% for tag in tag_list %}
+                    <span style="margin-left: 20px"><input style="margin-top: 10px" type="checkbox" name="tag" value="{{ tag.id }}">&nbsp;&nbsp;{{ tag.name }}</span>
+                {% endfor %}
+                </div>
+                <br>
+                <br>
+
+                <p style="color: fuchsia">分类：</p>
+                <div style="width: 100%;height: 30px;background-color: lawngreen">
+                {% for cla in class_list %}
+                    <span style="margin-left: 20px"><input style="margin-top: 10px" type="radio" name="cla" value="{{ cla.id }}">&nbsp;&nbsp;{{ cla.title }}</span>
+                {% endfor %}
+                </div>
                 <p><input id="sub" type="submit" style="background-color: #2aabd2;margin-top: 20px">{{ form.errors.content.0 }}</p>
             </form>
         </div>
@@ -31,6 +46,7 @@
         $("#sub").click(function () {
            $("#summary").val(editor.text())
         })
+
     </script>
 
 {% endblock %}
